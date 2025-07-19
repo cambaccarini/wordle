@@ -37,7 +37,13 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
 export default function GameScreen() {
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
-  const [currentGuess, setCurrentGuess] = useState('');
+  const [currentGuess, setCurrentGuess] = useState(''); 
+  const resetGame = () => {
+  const randomIndex = Math.floor(Math.random() * validWords.length);
+  setWordToGuess(validWords[randomIndex].toLowerCase());
+  setGuesses([]);
+  setCurrentGuess('');
+};
 
   // Elegir palabra aleatoria al iniciar
   useEffect(() => {
@@ -54,9 +60,13 @@ export default function GameScreen() {
       setCurrentGuess('');
 
       if (currentGuess === wordToGuess) {
-        Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`);
+        Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`, [
+    { text: 'Jugar de nuevo', onPress: resetGame }
+  ]);
       } else if (nextGuesses.length === MAX_ATTEMPTS) {
-        Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`);
+        Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`, [
+    { text: 'Intentar otra vez', onPress: resetGame }
+  ]);
       }
 
       return;
