@@ -21,9 +21,9 @@ const VARIANTS_MAP: Record<string, string[]> = {
   U: ['Ú'],
 };
 
-const KEYS_ROW_1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O'];
-const KEYS_ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'P'];
-const KEYS_ROW_3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Ñ','L'];
+const KEYS_ROW_1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O' , 'P'];
+const KEYS_ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L' ,'Ñ'];
+const KEYS_ROW_3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M',];
 
 export function Keyboard({ onKeyPress }: Props) {
   const [popupVisible, setPopupVisible] = useState(false);
