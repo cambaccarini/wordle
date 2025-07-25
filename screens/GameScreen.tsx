@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { validWords } from '../words/validWords';
 import { Keyboard } from '../components/Keyboard';
+import { updateStats } from '../utils/storage';
 
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
+
 type LetterColor = 'correct' | 'present' | 'absent';
+
 function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
   const colors: LetterColor[] = Array(guess.length).fill('absent');
   const wordLetterCount: Record<string, number> = {};
@@ -15,7 +18,7 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
     wordLetterCount[letter] = (wordLetterCount[letter] || 0) + 1;
   }
 
-  // Marcar verdes
+  // Marcar correctas (verde)
   for (let i = 0; i < guess.length; i++) {
     if (guess[i] === wordToGuess[i]) {
       colors[i] = 'correct';
@@ -23,35 +26,36 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
     }
   }
 
-  // Marcar amarillas 
+  // Marcar presentes (amarillo)
   for (let i = 0; i < guess.length; i++) {
     if (colors[i] === 'correct') continue;
-
     if (wordLetterCount[guess[i]] > 0) {
       colors[i] = 'present';
       wordLetterCount[guess[i]]!--;
     }
   }
+
   return colors;
 }
+
 export default function GameScreen() {
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
-  const [currentGuess, setCurrentGuess] = useState(''); 
-  const resetGame = () => {
-  const randomIndex = Math.floor(Math.random() * validWords.length);
-  setWordToGuess(validWords[randomIndex].toLowerCase());
-  setGuesses([]);
-  setCurrentGuess('');
-};
+  const [currentGuess, setCurrentGuess] = useState('');
 
-  // Elegir palabra aleatoria al iniciar
+  const resetGame = () => {
+    const randomIndex = Math.floor(Math.random() * validWords.length);
+    setWordToGuess(validWords[randomIndex].toLowerCase());
+    setGuesses([]);
+    setCurrentGuess('');
+  };
+
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * validWords.length);
     setWordToGuess(validWords[randomIndex].toLowerCase());
   }, []);
 
-  const handleKeyPress = (key: string) => {
+  const handleKeyPress = async (key: string) => {
     if (key === 'ENTER') {
       if (currentGuess.length !== WORD_LENGTH) return;
 
@@ -60,60 +64,58 @@ export default function GameScreen() {
       setCurrentGuess('');
 
       if (currentGuess === wordToGuess) {
+        await updateStats(true); // GANÓ
         Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`, [
-    { text: 'Jugar de nuevo', onPress: resetGame }
-  ]);
+          { text: 'Jugar de nuevo', onPress: resetGame },
+        ]);
       } else if (nextGuesses.length === MAX_ATTEMPTS) {
+        await updateStats(false); // PERDIÓ
         Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`, [
-    { text: 'Intentar otra vez', onPress: resetGame }
-  ]);
+          { text: 'Intentar otra vez', onPress: resetGame },
+        ]);
       }
 
       return;
     }
 
     if (key === 'DELETE') {
-      setCurrentGuess(prev => prev.slice(0, -1));
+      setCurrentGuess((prev) => prev.slice(0, -1));
       return;
     }
 
-if (
-  currentGuess.length < WORD_LENGTH &&
-  /^[A-ZÑÁÉÍÓÚ]$/.test(key)
-) {
-    setCurrentGuess(prev => prev + key.toLowerCase());
+    if (currentGuess.length < WORD_LENGTH && /^[A-ZÑÁÉÍÓÚ]$/.test(key)) {
+      setCurrentGuess((prev) => prev + key.toLowerCase());
     }
   };
 
-const renderCell = (letter: string, color: LetterColor, index: number) => {
-  let backgroundColor = '#121213'; 
+  const renderCell = (letter: string, color: LetterColor, index: number) => {
+    let backgroundColor = '#121213';
 
-  if (color === 'correct') backgroundColor = '#538d4e';
-  else if (color === 'present') backgroundColor = '#b59f3b'; 
-  else if (color === 'absent') backgroundColor = '#3a3a3c'; 
+    if (color === 'correct') backgroundColor = '#538d4e';
+    else if (color === 'present') backgroundColor = '#b59f3b';
+    else if (color === 'absent') backgroundColor = '#3a3a3c';
 
-  return (
-    <View key={index} style={[styles.cell, { backgroundColor }]}>
-      <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-    </View>
-  );
-};
+    return (
+      <View key={index} style={[styles.cell, { backgroundColor }]}>
+        <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+      </View>
+    );
+  };
 
-const renderRow = (word: string, index: number) => {
-  const colors =
-    index < guesses.length
-      ? getLetterColors(word, wordToGuess)
-      : Array(word.length).fill('absent'); 
+  const renderRow = (word: string, index: number) => {
+    const colors =
+      index < guesses.length
+        ? getLetterColors(word, wordToGuess)
+        : Array(word.length).fill('absent');
 
-  return (
-    <View key={index} style={styles.row}>
-      {[...Array(WORD_LENGTH)].map((_, i) =>
-        renderCell(word[i] ?? '', colors[i], i)
-      )}
-    </View>
-  );
-};
-
+    return (
+      <View key={index} style={styles.row}>
+        {[...Array(WORD_LENGTH)].map((_, i) =>
+          renderCell(word[i] ?? '', colors[i], i)
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
