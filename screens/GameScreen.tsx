@@ -61,7 +61,10 @@ export default function GameScreen() {
     const newDisabledKeys = new Set(disabledKeys);
 
     guess.split('').forEach((letter, i) => {
-
+      // Si la letra pertenece a la palabra, no desactivarla.
+      if (wordToGuess.includes(letter)) {
+        return;
+      }
 
       const upperLetter = letter.toUpperCase();
 
