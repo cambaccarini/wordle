@@ -32,5 +32,5 @@ export const validWords = [
   "bañar", "sueña", "gruñe", "teñir",
   "fijar", "salsa", "junta", "rompe", "torre", "manía", "puñal", "gozar", "rogar", "botes",
   "ligar", "lomos", "salas", "fango", "cavar", "llevo", "andar", "peñas",
-  "cañas", "rasca", "guapa", "chipá", "monas", "gruño", "tapar", "mirar", "vivir", "rojas"
+  "cañas", "rasca", "guapa", "chipá", "monas", "gruño", "tapar", "mirar", "vivir", "rojas","aeiou","áéíóú"
 ];

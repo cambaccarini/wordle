@@ -13,12 +13,10 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
   const colors: LetterColor[] = Array(guess.length).fill('absent');
   const wordLetterCount: Record<string, number> = {};
 
-  // Contar letras de la palabra secreta
   for (const letter of wordToGuess) {
     wordLetterCount[letter] = (wordLetterCount[letter] || 0) + 1;
   }
 
-  // Marcar correctas (verde)
   for (let i = 0; i < guess.length; i++) {
     if (guess[i] === wordToGuess[i]) {
       colors[i] = 'correct';
@@ -26,7 +24,6 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
     }
   }
 
-  // Marcar presentes (amarillo)
   for (let i = 0; i < guess.length; i++) {
     if (colors[i] === 'correct') continue;
     if (wordLetterCount[guess[i]] > 0) {
@@ -42,34 +39,74 @@ export default function GameScreen() {
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
+  const [disabledKeys, setDisabledKeys] = useState<string[]>([]);
 
   const resetGame = () => {
     const randomIndex = Math.floor(Math.random() * validWords.length);
     setWordToGuess(validWords[randomIndex].toLowerCase());
     setGuesses([]);
     setCurrentGuess('');
+    setDisabledKeys([]);
   };
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * validWords.length);
-    setWordToGuess(validWords[randomIndex].toLowerCase());
+    resetGame();
   }, []);
+
+  const updateDisabledKeys = (guess: string, colors: LetterColor[]) => {
+    const newDisabledKeys = new Set(disabledKeys);
+    
+    guess.split('').forEach((letter, i) => {
+      const upperLetter = letter.toUpperCase();
+      
+      // Solo considerar letras marcadas como ausentes
+      if (colors[i] === 'absent') {
+        // Para vocales, verificar si existe versión acentuada en la palabra
+        if (['A', 'E', 'I', 'O', 'U'].includes(upperLetter)) {
+          // Verificar si la palabra contiene alguna versión acentuada de esta vocal
+          const hasAccentedVariant = wordToGuess.split('').some(l => {
+            const normalizedLetter = l.normalize("NFD")[0].toUpperCase();
+            return normalizedLetter === upperLetter && l !== letter;
+          });
+          
+          // Solo bloquear si no hay variante acentuada
+          if (!hasAccentedVariant) {
+            newDisabledKeys.add(upperLetter);
+          }
+        } else {
+          // Para no vocales, bloquear directamente
+          newDisabledKeys.add(upperLetter);
+        }
+      }
+    });
+
+    setDisabledKeys(Array.from(newDisabledKeys));
+  };
 
   const handleKeyPress = async (key: string) => {
     if (key === 'ENTER') {
       if (currentGuess.length !== WORD_LENGTH) return;
 
+      if (!validWords.includes(currentGuess.toLowerCase())) {
+        Alert.alert('Palabra inválida', 'La palabra no está en nuestro diccionario');
+        return;
+      }
+
       const nextGuesses = [...guesses, currentGuess];
+      const colors = getLetterColors(currentGuess, wordToGuess);
+      
+      updateDisabledKeys(currentGuess, colors);
+      
       setGuesses(nextGuesses);
       setCurrentGuess('');
 
       if (currentGuess === wordToGuess) {
-        await updateStats(true); // GANÓ
+        await updateStats(true);
         Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`, [
           { text: 'Jugar de nuevo', onPress: resetGame },
         ]);
       } else if (nextGuesses.length === MAX_ATTEMPTS) {
-        await updateStats(false); // PERDIÓ
+        await updateStats(false);
         Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`, [
           { text: 'Intentar otra vez', onPress: resetGame },
         ]);
@@ -122,7 +159,7 @@ export default function GameScreen() {
       {[...Array(MAX_ATTEMPTS)].map((_, i) =>
         renderRow(guesses[i] ?? (i === guesses.length ? currentGuess : ''), i)
       )}
-      <Keyboard onKeyPress={handleKeyPress} />
+      <Keyboard onKeyPress={handleKeyPress} disabledKeys={disabledKeys} />
     </View>
   );
 }

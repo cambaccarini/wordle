@@ -11,6 +11,7 @@ import { LayoutRectangle, findNodeHandle, UIManager } from 'react-native';
 
 type Props = {
   onKeyPress: (key: string) => void;
+  disabledKeys?: string[];
 };
 
 const VARIANTS_MAP: Record<string, string[]> = {
@@ -23,53 +24,54 @@ const VARIANTS_MAP: Record<string, string[]> = {
 
 const KEYS_ROW_1 = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O' , 'P'];
 const KEYS_ROW_2 = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L' ,'Ñ'];
-const KEYS_ROW_3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M',];
+const KEYS_ROW_3 = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
 
-export function Keyboard({ onKeyPress }: Props) {
+export function Keyboard({ onKeyPress, disabledKeys = [] }: Props) {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupKeys, setPopupKeys] = useState<string[]>([]);
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null);
 
-
-const handleLongPress = (key: string, ref: any) => {
-  if (VARIANTS_MAP[key]) {
-    const handle = findNodeHandle(ref.current);
-    if (handle) {
-      UIManager.measure(handle, (_x, _y, _w, _h, pageX, pageY) => {
-        setPopupPosition({ x: pageX, y: pageY });
-        setPopupKeys(VARIANTS_MAP[key]);
-        setPopupVisible(true);
-      });
+  const handleLongPress = (key: string, ref: any) => {
+    if (disabledKeys.includes(key)) return;
+    
+    if (VARIANTS_MAP[key]) {
+      const handle = findNodeHandle(ref.current);
+      if (handle) {
+        UIManager.measure(handle, (_x, _y, _w, _h, pageX, pageY) => {
+          setPopupPosition({ x: pageX, y: pageY });
+          setPopupKeys(VARIANTS_MAP[key]);
+          setPopupVisible(true);
+        });
+      }
+    } else {
+      onKeyPress(key);
     }
-  } else {
-    onKeyPress(key);
-  }
-};
-
+  };
 
   const handlePress = (key: string) => {
-    if (popupVisible) return; 
+    if (popupVisible || disabledKeys.includes(key)) return;
     onKeyPress(key);
   };
 
-const renderKey = (key: string) => {
-  const keyRef = React.createRef<any>();
+  const renderKey = (key: string) => {
+    const keyRef = React.createRef<any>();
+    const isDisabled = disabledKeys.includes(key);
 
-  return (
-    <TouchableOpacity
-      key={key}
-      ref={keyRef}
-      onPress={() => handlePress(key)}
-      onLongPress={() => handleLongPress(key, keyRef)}
-      delayLongPress={300}
-      style={styles.key}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.keyText}>{key}</Text>
-    </TouchableOpacity>
-  );
-};
-
+    return (
+      <TouchableOpacity
+        key={key}
+        ref={keyRef}
+        onPress={() => handlePress(key)}
+        onLongPress={() => !isDisabled && handleLongPress(key, keyRef)}
+        delayLongPress={300}
+        style={[styles.key, isDisabled && styles.disabledKey]}
+        activeOpacity={0.7}
+        disabled={isDisabled}
+      >
+        <Text style={[styles.keyText, isDisabled && styles.disabledKeyText]}>{key}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <>
@@ -78,55 +80,55 @@ const renderKey = (key: string) => {
         <View style={styles.row}>{KEYS_ROW_2.map(renderKey)}</View>
         <View style={styles.row}>{KEYS_ROW_3.map(renderKey)}</View>
         <View style={styles.rowSpecial}>
-        <TouchableOpacity
-          onPress={() => onKeyPress('DELETE')}
-          style={[styles.key, styles.specialKey, { marginRight: 20 }]}
-        >
-          <Text style={styles.keyText}>⌫</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => onKeyPress('DELETE')}
+            style={[styles.key, styles.specialKey, { marginRight: 20 }]}
+          >
+            <Text style={styles.keyText}>⌫</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => onKeyPress('ENTER')}
-          style={[styles.key, styles.specialKey, { marginLeft: 20 }]}
-        >
-          <Text style={styles.keyText}>⏎</Text>
-        </TouchableOpacity>
-      </View>
-      </View>
-
-<Modal transparent visible={popupVisible} animationType="fade">
-  <TouchableWithoutFeedback onPress={() => setPopupVisible(false)}>
-    <View style={StyleSheet.absoluteFillObject}>
-      {popupPosition && (
-        <View
-          style={[
-            styles.popupContainer,
-            {
-              position: 'absolute',
-              top: popupPosition.y - 110, 
-              left: popupPosition.x - 15, 
-            },
-          ]}
-        >
-          {popupKeys.map((k) => (
-            <TouchableOpacity
-              key={k}
-              onPress={() => {
-                onKeyPress(k);
-                setPopupVisible(false);
-              }}
-              style={styles.popupKey}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.keyText}>{k}</Text>
-            </TouchableOpacity>
-          ))}
+          <TouchableOpacity
+            onPress={() => onKeyPress('ENTER')}
+            style={[styles.key, styles.specialKey, { marginLeft: 20 }]}
+          >
+            <Text style={styles.keyText}>⏎</Text>
+          </TouchableOpacity>
         </View>
-      )}
-    </View>
-  </TouchableWithoutFeedback>
-</Modal>
+      </View>
 
+      <Modal transparent visible={popupVisible} animationType="fade">
+        <TouchableWithoutFeedback onPress={() => setPopupVisible(false)}>
+          <View style={StyleSheet.absoluteFillObject}>
+            {popupPosition && (
+              <View
+                style={[
+                  styles.popupContainer,
+                  {
+                    position: 'absolute',
+                    top: popupPosition.y - 110,
+                    left: popupPosition.x - 15,
+                  },
+                ]}
+              >
+                {popupKeys.map((k) => (
+                  <TouchableOpacity
+                    key={k}
+                    onPress={() => {
+                      onKeyPress(k);
+                      setPopupVisible(false);
+                    }}
+                    style={[styles.popupKey, disabledKeys.includes(k) && styles.disabledKey]}
+                    activeOpacity={0.7}
+                    disabled={disabledKeys.includes(k)}
+                  >
+                    <Text style={[styles.keyText, disabledKeys.includes(k) && styles.disabledKeyText]}>{k}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </>
   );
 }
@@ -136,14 +138,13 @@ const styles = StyleSheet.create({
     marginTop: 32,
     alignItems: 'center',
     width: '100%',
-    maxWidth: 400, 
     paddingHorizontal: 8,
   },
-    row: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 8,
-    flexWrap: 'nowrap',
+    width: '100%',
   },
   rowSpecial: {
     flexDirection: 'row',
@@ -151,17 +152,26 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 24,
     gap: 40
-   },
+  },
   key: {
-    width: 36,
-    height: 50,
+    width: 35,
+    height: 55,
     marginHorizontal: 2,
     marginVertical: 2,
     backgroundColor: '#818384',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 4,
-  },
+    // Efecto 3D con bordes
+    borderBottomWidth: 4,
+    borderBottomColor: '#5a5a5a',
+    borderRightWidth: 2,
+    borderRightColor: '#6a6a6a',
+    borderLeftWidth: 1,
+    borderLeftColor: '#a0a0a0',
+    borderTopWidth: 0.5,
+    borderTopColor: '#b0b0b0',
+},
   specialKey: {
     width: 60,
     backgroundColor: '#565758',
@@ -171,11 +181,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  popupOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  disabledKey: {
+    backgroundColor: '#555555ff',
+    opacity: 0.5,
+  },
+  disabledKeyText: {
+    color: '#f7f7f7ff',
   },
   popupContainer: {
     flexDirection: 'row',
