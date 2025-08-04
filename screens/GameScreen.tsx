@@ -87,10 +87,6 @@ export default function GameScreen() {
     if (key === 'ENTER') {
       if (currentGuess.length !== WORD_LENGTH) return;
 
-      if (!validWords.includes(currentGuess.toLowerCase())) {
-        Alert.alert('Palabra inválida', 'La palabra no está en nuestro diccionario');
-        return;
-      }
 
       const nextGuesses = [...guesses, currentGuess];
       const colors = getLetterColors(currentGuess, wordToGuess);
