@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { validWords } from '../words/validWords';
 import { Keyboard } from '../components/Keyboard';
@@ -36,6 +37,9 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
 }
 
 export default function GameScreen() {
+
+  const navigation = useNavigation();
+
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
@@ -55,10 +59,12 @@ export default function GameScreen() {
 
   const updateDisabledKeys = (guess: string, colors: LetterColor[]) => {
     const newDisabledKeys = new Set(disabledKeys);
-    
+
     guess.split('').forEach((letter, i) => {
+
+
       const upperLetter = letter.toUpperCase();
-      
+
       // Solo considerar letras marcadas como ausentes
       if (colors[i] === 'absent') {
         // Para vocales, verificar si existe versión acentuada en la palabra
@@ -68,7 +74,7 @@ export default function GameScreen() {
             const normalizedLetter = l.normalize("NFD")[0].toUpperCase();
             return normalizedLetter === upperLetter && l !== letter;
           });
-          
+
           // Solo bloquear si no hay variante acentuada
           if (!hasAccentedVariant) {
             newDisabledKeys.add(upperLetter);
@@ -90,9 +96,9 @@ export default function GameScreen() {
 
       const nextGuesses = [...guesses, currentGuess];
       const colors = getLetterColors(currentGuess, wordToGuess);
-      
+
       updateDisabledKeys(currentGuess, colors);
-      
+
       setGuesses(nextGuesses);
       setCurrentGuess('');
 
@@ -100,11 +106,13 @@ export default function GameScreen() {
         await updateStats(true);
         Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`, [
           { text: 'Jugar de nuevo', onPress: resetGame },
+          { text: 'Volver al inicio', onPress: () => navigation.navigate('Home') },
         ]);
       } else if (nextGuesses.length === MAX_ATTEMPTS) {
         await updateStats(false);
         Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`, [
           { text: 'Intentar otra vez', onPress: resetGame },
+          { text: 'Volver al inicio', onPress: () => navigation.navigate('Home') },
         ]);
       }
 
