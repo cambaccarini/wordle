@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  Pressable,
+} from 'react-native';
 import { validWords } from '../words/validWords';
 import { Keyboard } from '../components/Keyboard';
 import { updateStats } from '../utils/storage';
@@ -36,12 +43,22 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
   return colors;
 }
 
+type RootStackParamList = {
+  Home: undefined;
+  // add other routes here if needed
+};
+
 export default function GameScreen() {
   const { colors } = useTheme();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [disabledKeys, setDisabledKeys] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
 
   const dynamicStyles = {
     container: {
@@ -82,26 +99,19 @@ export default function GameScreen() {
 
   const updateDisabledKeys = (guess: string, colors: LetterColor[]) => {
     const newDisabledKeys = new Set(disabledKeys);
-    
+
     guess.split('').forEach((letter, i) => {
+      if (wordToGuess.includes(letter)) return;
       const upperLetter = letter.toUpperCase();
-      
-      // Solo considerar letras marcadas como ausentes
+
       if (colors[i] === 'absent') {
-        // Para vocales, verificar si existe versión acentuada en la palabra
         if (['A', 'E', 'I', 'O', 'U'].includes(upperLetter)) {
-          // Verificar si la palabra contiene alguna versión acentuada de esta vocal
           const hasAccentedVariant = wordToGuess.split('').some(l => {
             const normalizedLetter = l.normalize("NFD")[0].toUpperCase();
             return normalizedLetter === upperLetter && l !== letter;
           });
-          
-          // Solo bloquear si no hay variante acentuada
-          if (!hasAccentedVariant) {
-            newDisabledKeys.add(upperLetter);
-          }
+          if (!hasAccentedVariant) newDisabledKeys.add(upperLetter);
         } else {
-          // Para no vocales, bloquear directamente
           newDisabledKeys.add(upperLetter);
         }
       }
@@ -118,20 +128,19 @@ export default function GameScreen() {
       const colors = getLetterColors(currentGuess, wordToGuess);
 
       updateDisabledKeys(currentGuess, colors);
-
-      setGuesses(nextGuesses);
-      setCurrentGuess('');
+setGuesses(nextGuesses);
+setCurrentGuess('');
 
       if (currentGuess === wordToGuess) {
         await updateStats(true);
-        Alert.alert('¡Ganaste!', `La palabra era "${wordToGuess.toUpperCase()}"`, [
-          { text: 'Jugar de nuevo', onPress: resetGame },
-        ]);
+        setModalTitle('¡Ganaste!');
+        setModalMessage(`La palabra era "${wordToGuess.toUpperCase()}"`);
+        setModalVisible(true);
       } else if (nextGuesses.length === MAX_ATTEMPTS) {
         await updateStats(false);
-        Alert.alert('Perdiste :(', `La palabra era "${wordToGuess.toUpperCase()}"`, [
-          { text: 'Intentar otra vez', onPress: resetGame },
-        ]);
+        setModalTitle('Perdiste :(');
+        setModalMessage(`La palabra era "${wordToGuess.toUpperCase()}"`);
+        setModalVisible(true);
       }
 
       return;
@@ -181,6 +190,40 @@ export default function GameScreen() {
         renderRow(guesses[i] ?? (i === guesses.length ? currentGuess : ''), i)
       )}
       <Keyboard onKeyPress={handleKeyPress} disabledKeys={disabledKeys} />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>{modalTitle}</Text>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={styles.button}
+                onPress={() => {
+                  setModalVisible(false);
+                  resetGame();
+                }}
+              >
+                <Text style={styles.buttonText}>Jugar de nuevo</Text>
+              </Pressable>
+              <Pressable
+                style={styles.button}
+                onPress={() => {
+                  setModalVisible(false);
+                  navigation.navigate('Home');
+                }}
+              >
+                <Text style={styles.buttonText}>Volver al inicio</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -189,5 +232,58 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     marginBottom: 8,
+  },
+
+  cell: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderColor: '#3a3a3c',
+    margin: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#121213',
+  },
+  cellText: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  button: {
+    backgroundColor: '#538d4e',
+    padding: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
