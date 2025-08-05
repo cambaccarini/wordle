@@ -1,11 +1,120 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation, NavigationProp, useTheme } from '@react-navigation/native';
 import { getStats } from '../utils/storage';
 
+type RootStackParamList = {
+  Home: undefined;
+  Game: undefined;
+};
+
 export default function HomeScreen() {
-  const navigation = useNavigation();
+  const { colors } = useTheme();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [stats, setStats] = useState({ wins: 0, losses: 0 });
+
+  const { width } = Dimensions.get('window');
+  const chartSize = width * 0.5;
+  const chartCenterSize = chartSize * 0.7;
+  const borderRadius = chartSize / 2;
+
+  const dynamicStyles = {
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      padding: 20,
+    },
+    title: {
+      color: colors.text,
+      fontSize: 32,
+      marginBottom: 30,
+      fontWeight: 'bold' as const,
+      textAlign: 'center' as const,
+    },
+    chartContainer: {
+      width: chartSize,
+      height: chartSize,
+      marginBottom: 30,
+      position: 'relative' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+    },
+    chartBackground: {
+      width: '100%' as const,
+      height: '100%' as const,
+      borderRadius,
+      borderWidth: 10,
+      borderColor: colors.notification || '#ff3b30',
+      position: 'absolute' as const,
+    },
+    chartProgress: {
+      width: '100%' as const,
+      height: '100%' as const,
+      borderRadius,
+      borderWidth: 10,
+      borderLeftColor: colors.primary || '#538d4e',
+      borderTopColor: colors.primary || '#538d4e',
+      borderRightColor: 'transparent',
+      borderBottomColor: 'transparent',
+      position: 'absolute' as const,
+      transform: [{ rotate: '0deg' }],
+    },
+    chartCenter: {
+      width: chartCenterSize,
+      height: chartCenterSize,
+      borderRadius: chartCenterSize / 2,
+      backgroundColor: colors.background,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+    },
+    percentageText: {
+      color: colors.text,
+      fontSize: 32,
+      fontWeight: 'bold' as const,
+    },
+    percentageSubText: {
+      color: colors.border || '#aaa',
+      fontSize: 16,
+    },
+    statsContainer: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-around' as const,
+      width: '100%' as const,
+      marginBottom: 40,
+    },
+    statItem: {
+      alignItems: 'center' as const,
+    },
+    statNumber: {
+      color: colors.text,
+      fontSize: 28,
+      fontWeight: 'bold' as const,
+      marginBottom: 5,
+    },
+    statLabel: {
+      color: colors.border || '#aaa',
+      fontSize: 16,
+    },
+    winText: {
+      color: colors.primary || '#538d4e',
+    },
+    lossText: {
+      color: colors.notification || '#ff3b30',
+    },
+    button: {
+      backgroundColor: colors.primary || '#538d4e',
+      paddingVertical: 15,
+      paddingHorizontal: 40,
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: colors.card || 'white',
+      fontSize: 20,
+      fontWeight: 'bold' as const,
+    },
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -20,152 +129,49 @@ export default function HomeScreen() {
   const winPercentage = totalGames > 0 ? Math.round((stats.wins / totalGames) * 100) : 0;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>¡Bienvenido al Wordle!</Text>
+    <View style={dynamicStyles.container}>
+      <Text style={dynamicStyles.title}>¡Bienvenido al Wordle!</Text>
 
       {/* Gráfico circular manual */}
       {totalGames > 0 && (
-        <View style={styles.chartContainer}>
-          <View style={styles.chartBackground} />
+        <View style={dynamicStyles.chartContainer}>
+          <View style={dynamicStyles.chartBackground} />
           <View
             style={[
-              styles.chartProgress,
+              dynamicStyles.chartProgress,
               {
-                transform: [
-                  {
-                    rotate: `${(winPercentage / 100) * 360}deg`,
-                  },
-                ],
+                transform: [{ rotate: `${(winPercentage / 100) * 360}deg` }],
               },
             ]}
           />
-          <View style={styles.chartCenter}>
-            <Text style={styles.percentageText}>{winPercentage}%</Text>
-            <Text style={styles.percentageSubText}>Victorias</Text>
+          <View style={dynamicStyles.chartCenter}>
+            <Text style={dynamicStyles.percentageText}>{winPercentage}%</Text>
+            <Text style={dynamicStyles.percentageSubText}>Victorias</Text>
           </View>
         </View>
       )}
 
-      {/* Estadísticas detalladas */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{totalGames}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+      <View style={dynamicStyles.statsContainer}>
+        <View style={dynamicStyles.statItem}>
+          <Text style={dynamicStyles.statNumber}>{totalGames}</Text>
+          <Text style={dynamicStyles.statLabel}>Total</Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, styles.winText]}>{stats.wins}</Text>
-          <Text style={styles.statLabel}>Ganadas</Text>
+        <View style={dynamicStyles.statItem}>
+          <Text style={[dynamicStyles.statNumber, dynamicStyles.winText]}>{stats.wins}</Text>
+          <Text style={dynamicStyles.statLabel}>Ganadas</Text>
         </View>
-        <View style={styles.statItem}>
-          <Text style={[styles.statNumber, styles.lossText]}>{stats.losses}</Text>
-          <Text style={styles.statLabel}>Perdidas</Text>
+        <View style={dynamicStyles.statItem}>
+          <Text style={[dynamicStyles.statNumber, dynamicStyles.lossText]}>{stats.losses}</Text>
+          <Text style={dynamicStyles.statLabel}>Perdidas</Text>
         </View>
       </View>
 
       <TouchableOpacity
-        style={styles.button}
+        style={dynamicStyles.button}
         onPress={() => navigation.navigate('Game')}
       >
-        <Text style={styles.buttonText}>Jugar</Text>
+        <Text style={dynamicStyles.buttonText}>Jugar</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#121213',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    color: 'white',
-    fontSize: 32,
-    marginBottom: 30,
-    fontWeight: 'bold',
-  },
-  // Estilos para el gráfico circular manual
-  chartContainer: {
-    width: 200,
-    height: 200,
-    marginBottom: 30,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chartBackground: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 100,
-    borderWidth: 10,
-    borderColor: '#ff3b30', // Rojo (derrotas) - Cambiado de gris a rojo
-    position: 'absolute',
-  },
-  chartProgress: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 100,
-    borderWidth: 10,
-    borderLeftColor: '#538d4e', // Verde (victorias)
-    borderTopColor: '#538d4e',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
-    position: 'absolute',
-    transform: [{ rotate: '0deg' }],
-  },
-  chartCenter: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#121213',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  percentageText: {
-    color: 'white',
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  percentageSubText: {
-    color: '#aaa',
-    fontSize: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: 40,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  statLabel: {
-    color: '#aaa',
-    fontSize: 16,
-  },
-  winText: {
-    color: '#538d4e', // Verde (victorias)
-  },
-  lossText: {
-    color: '#ff3b30', // Rojo (derrotas) - Cambiado de gris a rojo
-  },
-  button: {
-    backgroundColor: '#538d4e',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-});

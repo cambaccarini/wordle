@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Alert } from 'react-native';
 import { validWords } from '../words/validWords';
 import { Keyboard } from '../components/Keyboard';
 import { updateStats } from '../utils/storage';
+import { useTheme } from '@react-navigation/native';
 
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
@@ -36,10 +37,36 @@ function getLetterColors(guess: string, wordToGuess: string): LetterColor[] {
 }
 
 export default function GameScreen() {
+  const { colors } = useTheme();
   const [wordToGuess, setWordToGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [disabledKeys, setDisabledKeys] = useState<string[]>([]);
+
+  const dynamicStyles = {
+    container: {
+      paddingTop: 50,
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: 'center' as const,
+      justifyContent: 'flex-start' as const,
+    },
+    cell: {
+      width: 50,
+      height: 50,
+      borderWidth: 2,
+      borderColor: colors.border || '#3a3a3c',
+      margin: 4,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      backgroundColor: colors.background,
+    },
+    cellText: {
+      color: colors.text,
+      fontSize: 28,
+      fontWeight: 'bold' as const,
+    },
+  };
 
   const resetGame = () => {
     const randomIndex = Math.floor(Math.random() * validWords.length);
@@ -87,12 +114,11 @@ export default function GameScreen() {
     if (key === 'ENTER') {
       if (currentGuess.length !== WORD_LENGTH) return;
 
-
       const nextGuesses = [...guesses, currentGuess];
       const colors = getLetterColors(currentGuess, wordToGuess);
-      
+
       updateDisabledKeys(currentGuess, colors);
-      
+
       setGuesses(nextGuesses);
       setCurrentGuess('');
 
@@ -122,15 +148,14 @@ export default function GameScreen() {
   };
 
   const renderCell = (letter: string, color: LetterColor, index: number) => {
-    let backgroundColor = '#121213';
-
+    let backgroundColor = colors.background;
     if (color === 'correct') backgroundColor = '#538d4e';
     else if (color === 'present') backgroundColor = '#b59f3b';
-    else if (color === 'absent') backgroundColor = '#3a3a3c';
+    else if (color === 'absent') backgroundColor = colors.card || '#3a3a3c';
 
     return (
-      <View key={index} style={[styles.cell, { backgroundColor }]}>
-        <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+      <View key={index} style={[dynamicStyles.cell, { backgroundColor }]}>
+        <Text style={dynamicStyles.cellText}>{letter.toUpperCase()}</Text>
       </View>
     );
   };
@@ -151,7 +176,7 @@ export default function GameScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {[...Array(MAX_ATTEMPTS)].map((_, i) =>
         renderRow(guesses[i] ?? (i === guesses.length ? currentGuess : ''), i)
       )}
@@ -161,30 +186,8 @@ export default function GameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: 50,
-    flex: 1,
-    backgroundColor: '#121213',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
   row: {
     flexDirection: 'row',
     marginBottom: 8,
-  },
-  cell: {
-    width: 50,
-    height: 50,
-    borderWidth: 2,
-    borderColor: '#3a3a3c',
-    margin: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#121213',
-  },
-  cellText: {
-    color: 'white',
-    fontSize: 28,
-    fontWeight: 'bold',
   },
 });
