@@ -22,43 +22,43 @@ export default function HomeScreen() {
     container: {
       flex: 1,
       backgroundColor: colors.background,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
+      alignItems: 'center',
+      justifyContent: 'center',
       padding: 20,
     },
     title: {
       color: colors.text,
       fontSize: 32,
       marginBottom: 30,
-      fontWeight: 'bold' as const,
-      textAlign: 'center' as const,
+      fontWeight: 'bold',
+      textAlign: 'center',
     },
     chartContainer: {
       width: chartSize,
       height: chartSize,
       marginBottom: 30,
-      position: 'relative' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+      position: 'relative',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     chartBackground: {
-      width: '100%' as const,
-      height: '100%' as const,
+      width: '100%',
+      height: '100%',
       borderRadius,
       borderWidth: 10,
-      borderColor: colors.homeSecondary, // Rojo para las pérdidas
-      position: 'absolute' as const,
+      borderColor: colors.homeSecondary,
+      position: 'absolute',
     },
     chartProgress: {
-      width: '100%' as const,
-      height: '100%' as const,
+      width: '100%',
+      height: '100%',
       borderRadius,
       borderWidth: 10,
-      borderLeftColor: colors.homePrimary, // Verde para las victorias
+      borderLeftColor: colors.homePrimary,
       borderTopColor: colors.homePrimary,
       borderRightColor: 'transparent',
       borderBottomColor: 'transparent',
-      position: 'absolute' as const,
+      position: 'absolute',
       transform: [{ rotate: '0deg' }],
     },
     chartCenter: {
@@ -66,53 +66,58 @@ export default function HomeScreen() {
       height: chartCenterSize,
       borderRadius: chartCenterSize / 2,
       backgroundColor: colors.background,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     percentageText: {
       color: colors.text,
       fontSize: 32,
-      fontWeight: 'bold' as const,
+      fontWeight: 'bold',
     },
     percentageSubText: {
       color: colors.homeTextSecondary,
       fontSize: 16,
+      textAlign: 'center',
     },
     statsContainer: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-around' as const,
-      width: '100%' as const,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
       marginBottom: 40,
+      paddingHorizontal: 20,
     },
     statItem: {
-      alignItems: 'center' as const,
+      alignItems: 'center',
+      minWidth: '30%',
     },
     statNumber: {
       color: colors.text,
       fontSize: 28,
-      fontWeight: 'bold' as const,
+      fontWeight: 'bold',
       marginBottom: 5,
     },
     statLabel: {
       color: colors.homeTextSecondary,
       fontSize: 16,
+      textAlign: 'center',
     },
     winText: {
-      color: colors.homePrimary, // Verde para victorias
+      color: colors.homePrimary,
     },
     lossText: {
-      color: colors.homeSecondary, // Rojo para pérdidas
+      color: colors.homeSecondary,
     },
     button: {
-      backgroundColor: colors.homePrimary, // Verde para el botón
+      backgroundColor: colors.homePrimary,
       paddingVertical: 15,
       paddingHorizontal: 40,
       borderRadius: 8,
+      alignSelf: 'center',
     },
     buttonText: {
       color: colors.homeButtonText,
       fontSize: 20,
-      fontWeight: 'bold' as const,
+      fontWeight: 'bold',
     },
   };
 
@@ -132,7 +137,6 @@ export default function HomeScreen() {
     <View style={dynamicStyles.container}>
       <Text style={dynamicStyles.title}>¡Bienvenido al Wordle!</Text>
 
-      {/* Gráfico circular manual */}
       {totalGames > 0 && (
         <View style={dynamicStyles.chartContainer}>
           <View style={dynamicStyles.chartBackground} />
