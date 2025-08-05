@@ -46,7 +46,7 @@ export default function HomeScreen() {
       height: '100%' as const,
       borderRadius,
       borderWidth: 10,
-      borderColor: colors.notification || '#ff3b30',
+      borderColor: colors.homeSecondary, // Rojo para las pérdidas
       position: 'absolute' as const,
     },
     chartProgress: {
@@ -54,8 +54,8 @@ export default function HomeScreen() {
       height: '100%' as const,
       borderRadius,
       borderWidth: 10,
-      borderLeftColor: colors.primary || '#538d4e',
-      borderTopColor: colors.primary || '#538d4e',
+      borderLeftColor: colors.homePrimary, // Verde para las victorias
+      borderTopColor: colors.homePrimary,
       borderRightColor: 'transparent',
       borderBottomColor: 'transparent',
       position: 'absolute' as const,
@@ -75,7 +75,7 @@ export default function HomeScreen() {
       fontWeight: 'bold' as const,
     },
     percentageSubText: {
-      color: colors.border || '#aaa',
+      color: colors.homeTextSecondary,
       fontSize: 16,
     },
     statsContainer: {
@@ -94,23 +94,23 @@ export default function HomeScreen() {
       marginBottom: 5,
     },
     statLabel: {
-      color: colors.border || '#aaa',
+      color: colors.homeTextSecondary,
       fontSize: 16,
     },
     winText: {
-      color: colors.primary || '#538d4e',
+      color: colors.homePrimary, // Verde para victorias
     },
     lossText: {
-      color: colors.notification || '#ff3b30',
+      color: colors.homeSecondary, // Rojo para pérdidas
     },
     button: {
-      backgroundColor: colors.primary || '#538d4e',
+      backgroundColor: colors.homePrimary, // Verde para el botón
       paddingVertical: 15,
       paddingHorizontal: 40,
       borderRadius: 8,
     },
     buttonText: {
-      color: colors.card || 'white',
+      color: colors.homeButtonText,
       fontSize: 20,
       fontWeight: 'bold' as const,
     },

@@ -51,6 +51,9 @@ export default function GameScreen() {
   const [guesses, setGuesses] = useState<string[]>([]);
   const [currentGuess, setCurrentGuess] = useState('');
   const [disabledKeys, setDisabledKeys] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
 
   const dynamicStyles = {
     container: {
@@ -75,10 +78,51 @@ export default function GameScreen() {
       fontSize: 28,
       fontWeight: 'bold' as const,
     },
+    row: {
+      flexDirection: 'row' as const,
+      marginBottom: 8,
+    },
+    modalBackground: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.7)',
+    },
+    modalView: {
+      backgroundColor: colors.popupBackground,
+      borderRadius: 20,
+      padding: 25,
+      alignItems: 'center',
+      elevation: 5,
+      width: '80%',
+    },
+    modalTitle: {
+      fontSize: 24,
+      fontWeight: 'bold' as const,
+      marginBottom: 10,
+      color: colors.text,
+    },
+    modalText: {
+      fontSize: 18,
+      marginBottom: 20,
+      textAlign: 'center' as const,
+      color: colors.text,
+    },
+    modalButtons: {
+      flexDirection: 'row' as const,
+      gap: 10,
+    },
+    button: {
+      backgroundColor: colors.homePrimary || '#538d4e',
+      padding: 10,
+      borderRadius: 10,
+      marginHorizontal: 5,
+    },
+    buttonText: {
+      color: colors.homeButtonText || 'white',
+      fontWeight: 'bold' as const,
+    },
   };
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [modalTitle, setModalTitle] = useState('');
 
   const resetGame = () => {
     const randomIndex = Math.floor(Math.random() * validWords.length);
@@ -172,7 +216,7 @@ export default function GameScreen() {
         : Array(word.length).fill('absent');
 
     return (
-      <View key={index} style={styles.row}>
+      <View key={index} style={dynamicStyles.row}>
         {[...Array(WORD_LENGTH)].map((_, i) =>
           renderCell(word[i] ?? '', colors[i], i)
         )}
@@ -193,28 +237,28 @@ export default function GameScreen() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
-            <Text style={styles.modalText}>{modalMessage}</Text>
-            <View style={styles.modalButtons}>
+        <View style={dynamicStyles.modalBackground}>
+          <View style={dynamicStyles.modalView}>
+            <Text style={dynamicStyles.modalTitle}>{modalTitle}</Text>
+            <Text style={dynamicStyles.modalText}>{modalMessage}</Text>
+            <View style={dynamicStyles.modalButtons}>
               <Pressable
-                style={styles.button}
+                style={dynamicStyles.button}
                 onPress={() => {
                   setModalVisible(false);
                   resetGame();
                 }}
               >
-                <Text style={styles.buttonText}>Jugar de nuevo</Text>
+                <Text style={dynamicStyles.buttonText}>Jugar de nuevo</Text>
               </Pressable>
               <Pressable
-                style={styles.button}
+                style={dynamicStyles.button}
                 onPress={() => {
                   setModalVisible(false);
                   navigation.navigate('Home');
                 }}
               >
-                <Text style={styles.buttonText}>Volver al inicio</Text>
+                <Text style={dynamicStyles.buttonText}>Volver al inicio</Text>
               </Pressable>
             </View>
           </View>
@@ -225,6 +269,7 @@ export default function GameScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Solo mantenemos los estilos que no son del modal
   row: {
     flexDirection: 'row',
     marginBottom: 8,
@@ -242,43 +287,6 @@ const styles = StyleSheet.create({
   cellText: {
     color: 'white',
     fontSize: 28,
-    fontWeight: 'bold',
-  },
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalView: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 25,
-    alignItems: 'center',
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  button: {
-    backgroundColor: '#538d4e',
-    padding: 10,
-    borderRadius: 10,
-    marginHorizontal: 5,
-  },
-  buttonText: {
-    color: 'white',
     fontWeight: 'bold',
   },
 });
